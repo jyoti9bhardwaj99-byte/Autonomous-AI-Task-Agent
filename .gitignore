@@ -3,3 +3,5 @@ venv/
 __pycache__/
 memory.json
 test_memory.json
+workspace/*
+!workspace/sales.csv

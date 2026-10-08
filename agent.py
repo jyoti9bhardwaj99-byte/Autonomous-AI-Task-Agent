@@ -59,6 +59,8 @@ def execute(task, memory, feedback="", max_iters=5, log=print) -> str:
         SystemMessage(
             content=(
                 "Complete the sub-task. Use tools when you need facts or math. "
+                "Use only facts from tool results: never add units, currency "
+                "symbols, or details that are not in the data. "
                 "Give a concise final answer.\n\n"
                 "Results of earlier sub-tasks:\n" + memory.context()
             )
@@ -93,7 +95,9 @@ def critique(task: str, result: str) -> dict:
             SystemMessage(
                 content=(
                     "You are a strict reviewer. Decide whether the result fully "
-                    "and correctly completes the sub-task. Reply ONLY with JSON: "
+                    "and correctly completes the sub-task, and reject it if it "
+                    "contains units, currency symbols, or facts not supported by "
+                    "the data. Reply ONLY with JSON: "
                     '{"ok": true or false, "feedback": "what is missing or wrong"}'
                 )
             ),
@@ -134,7 +138,10 @@ def run(goal: str, max_retries: int = 2, log=print) -> str:
 
     final = llm.invoke(
         [
-            SystemMessage(content="Write a clear final answer to the goal using the results."),
+            SystemMessage(content=(
+                "Write a clear final answer to the goal using only the results. "
+                "Do not add units, currency symbols, or facts that are not in the results."
+            )),
             HumanMessage(content=f"Goal: {goal}\n\nResults:\n{memory.context()}"),
         ]
     )

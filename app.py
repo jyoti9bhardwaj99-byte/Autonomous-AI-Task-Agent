@@ -5,6 +5,7 @@ from pathlib import Path
 import streamlit as st
 
 from agent import MODEL, run
+from tools import WORKSPACE
 
 st.set_page_config(page_title="Autonomous AI Task Agent", page_icon="🤖", layout="wide")
 
@@ -16,7 +17,19 @@ with st.sidebar:
     st.header("Settings")
     max_retries = st.slider("Max self-correction retries", 0, 3, 2)
     st.markdown(f"**Model:** `{MODEL}`")
-    st.markdown("**Tools:** web search, calculator")
+    st.markdown("**Tools:** web search, calculator, file reader")
+
+    st.divider()
+    st.subheader("Files for the agent")
+    uploaded = st.file_uploader(
+        "Upload a file", type=["txt", "md", "csv", "json", "py", "pdf"]
+    )
+    if uploaded:
+        (WORKSPACE / Path(uploaded.name).name).write_bytes(uploaded.getvalue())
+        st.success(f"Saved {uploaded.name}")
+    files = [p.name for p in WORKSPACE.iterdir() if p.is_file()]
+    st.caption("Available: " + (", ".join(files) or "none"))
+
     st.divider()
     st.markdown(
         "**How it works**\n\n"
@@ -29,8 +42,9 @@ with st.sidebar:
 # ---------- example goals ----------
 examples = [
     "Find the current population of India and Japan, then calculate how many times larger India's population is",
-    "Search for the latest stable version of Python and tell me how many years ago Python 3.0 was released",
     "Find the height of Mount Everest in meters and convert it to feet",
+    "Read sales.csv and calculate the total revenue (units times price for each product, then add them up)",
+    "Read sales.csv, calculate revenue per product, and tell me which product earns the most",
 ]
 choice = st.selectbox("Try an example (or type your own below)", [""] + examples)
 goal = st.text_area("Your goal", value=choice, height=100)

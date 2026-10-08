@@ -4,3 +4,4 @@ langchain-groq
 duckduckgo-search
 python-dotenv
 streamlit
+pypdf
